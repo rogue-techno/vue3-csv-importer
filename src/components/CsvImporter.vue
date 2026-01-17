@@ -5,7 +5,7 @@
         <span>CSV Importer</span>
         <v-chip v-if="step > 1" size="small" variant="outlined">{{ file?.name }}</v-chip>
       </v-card-title>
-      
+
       <v-window v-model="step">
         <!-- Step 1: Upload -->
         <v-window-item :value="1">
@@ -20,7 +20,7 @@
             <v-icon icon="mdi-cloud-upload" size="64" color="primary" class="mb-4"></v-icon>
             <h3 class="text-h6 mb-2">Drag & Drop CSV File</h3>
             <p class="text-body-2 text-medium-emphasis">or click to browse</p>
-            
+
             <v-file-input
               ref="fileInput"
               v-model="files"
@@ -46,7 +46,7 @@
                 ></v-select>
               </v-col>
             </v-row>
-            
+
             <v-btn
               color="primary"
               size="large"
@@ -56,9 +56,7 @@
             >
               Parse & Preview
             </v-btn>
-            <v-btn variant="text" color="error" class="ml-2" @click="reset">
-              Cancel
-            </v-btn>
+            <v-btn variant="text" color="error" class="ml-2" @click="reset"> Cancel </v-btn>
           </div>
         </v-window-item>
 
@@ -106,8 +104,13 @@
             ></v-data-table>
 
             <div class="d-flex justify-end">
-              <v-btn variant="text" @click="step = 2" class="mr-2">Back</v-btn>
-              <v-btn color="success" prepend-icon="mdi-check" @click="completeImport" :disabled="!isValid">
+              <v-btn variant="text" class="mr-2" @click="step = 2">Back</v-btn>
+              <v-btn
+                color="success"
+                prepend-icon="mdi-check"
+                :disabled="!isValid"
+                @click="completeImport"
+              >
                 Import Data
               </v-btn>
             </div>
@@ -150,6 +153,7 @@ const isDragging = ref(false)
 const files = ref<File[]>([])
 const file = ref<File | null>(null)
 const error = ref<string | null>(null)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const fileInput = ref<any>(null)
 const parsing = ref(false)
 
@@ -161,18 +165,19 @@ const delimiters = [
   { title: 'Pipe (|)', value: '|' },
 ]
 
-const parsedData = ref<any[]>([])
+const parsedData = ref<Record<string, unknown>[]>([])
 const headers = ref<string[]>([])
 const mappings = ref<Record<string, string | null>>({})
 
 // Initialize mappings when fields change or headers are populated
 watch(headers, (newHeaders) => {
   const newMappings: Record<string, string | null> = {}
-  props.fields.forEach(field => {
+  props.fields.forEach((field) => {
     // Auto-match if header matches field key or label (case-insensitive)
-    const match = newHeaders.find(h => 
-      h.toLowerCase() === field.key.toLowerCase() || 
-      h.toLowerCase() === field.label.toLowerCase()
+    const match = newHeaders.find(
+      (h) =>
+        h.toLowerCase() === field.key.toLowerCase() ||
+        h.toLowerCase() === field.label.toLowerCase(),
     )
     newMappings[field.key] = match || null
   })
@@ -180,16 +185,16 @@ watch(headers, (newHeaders) => {
 })
 
 const previewHeaders = computed(() => {
-  return props.fields.map(f => ({
+  return props.fields.map((f) => ({
     title: f.label,
-    key: f.key
+    key: f.key,
   }))
 })
 
 const previewData = computed(() => {
-  return parsedData.value.map(row => {
-    const mappedRow: any = {}
-    props.fields.forEach(f => {
+  return parsedData.value.map((row) => {
+    const mappedRow: Record<string, unknown> = {}
+    props.fields.forEach((f) => {
       const csvCol = mappings.value[f.key]
       if (csvCol) {
         mappedRow[f.key] = row[csvCol]
@@ -201,7 +206,7 @@ const previewData = computed(() => {
 
 const isValid = computed(() => {
   // Check if all required fields are mapped
-  return props.fields.every(f => !f.required || mappings.value[f.key])
+  return props.fields.every((f) => !f.required || mappings.value[f.key])
 })
 
 const triggerFileInput = () => {
@@ -225,7 +230,7 @@ const onDrop = (event: DragEvent) => {
   }
 }
 
-const onFileSelected = (uploadedFiles: any) => {
+const onFileSelected = (uploadedFiles: unknown) => {
   // Vuetify v-file-input model is Array or File depending on config.
   const selected = Array.isArray(uploadedFiles) ? uploadedFiles[0] : uploadedFiles
   if (selected && selected instanceof File) {
@@ -248,7 +253,7 @@ const validateAndSetFile = (f: File) => {
 
 const parseFile = () => {
   if (!file.value) return
-  
+
   parsing.value = true
   Papa.parse(file.value, {
     header: true,
@@ -259,15 +264,15 @@ const parseFile = () => {
       if (results.errors.length > 0) {
         console.warn('Parse errors:', results.errors)
       }
-      
-      parsedData.value = results.data
+
+      parsedData.value = results.data as Record<string, unknown>[]
       headers.value = results.meta.fields || []
       step.value = 3
     },
     error: (err) => {
       parsing.value = false
       error.value = 'Error parsing file: ' + err.message
-    }
+    },
   })
 }
 

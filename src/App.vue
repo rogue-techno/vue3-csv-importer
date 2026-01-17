@@ -18,7 +18,7 @@ const importFields = [
   { key: 'city', label: 'City', required: false },
 ]
 
-const onImport = (data: any[]) => {
+const onImport = (data: unknown[]) => {
   console.log('Imported Data:', data)
   alert(`Imported ${data.length} rows! Check console.`)
 }
