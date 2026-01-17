@@ -1,137 +1,3 @@
-<template>
-  <v-container class="csv-importer fill-height justify-center">
-    <v-card width="900" class="pa-6" elevation="4">
-      <v-card-title class="text-h5 font-weight-bold mb-4 d-flex justify-space-between align-center">
-        <span>CSV Importer</span>
-        <v-chip v-if="step > 1" size="small" variant="outlined">{{ file?.name }}</v-chip>
-      </v-card-title>
-
-      <v-window v-model="step">
-        <!-- Step 1: Upload -->
-        <v-window-item :value="1">
-          <div
-            class="dropzone pa-10 text-center mb-4"
-            :class="{ 'dropzone-active': isDragging }"
-            @dragover.prevent="onDragOver"
-            @dragleave.prevent="onDragLeave"
-            @drop.prevent="onDrop"
-            @click="triggerFileInput"
-          >
-            <v-icon icon="mdi-cloud-upload" size="64" color="primary" class="mb-4"></v-icon>
-            <h3 class="text-h6 mb-2">Drag & Drop CSV File</h3>
-            <p class="text-body-2 text-medium-emphasis">or click to browse</p>
-
-            <v-file-input
-              ref="fileInput"
-              v-model="files"
-              accept=".csv"
-              class="d-none"
-              @update:model-value="onFileSelected"
-            ></v-file-input>
-          </div>
-        </v-window-item>
-
-        <!-- Step 2: Configure & Parse -->
-        <v-window-item :value="2">
-          <div v-if="file" class="text-center mb-6">
-            <v-row justify="center" align="center" class="mb-4">
-              <v-col cols="12" sm="6">
-                <v-select
-                  v-model="delimiter"
-                  :items="delimiters"
-                  label="Select Delimiter"
-                  variant="outlined"
-                  density="comfortable"
-                  hide-details
-                ></v-select>
-              </v-col>
-            </v-row>
-
-            <v-btn
-              color="primary"
-              size="large"
-              :loading="parsing"
-              prepend-icon="mdi-table-search"
-              @click="parseFile"
-            >
-              Parse & Preview
-            </v-btn>
-            <v-btn variant="text" color="error" class="ml-2" @click="reset"> Cancel </v-btn>
-          </div>
-        </v-window-item>
-
-        <!-- Step 3: Map Columns -->
-        <v-window-item :value="3">
-          <div class="mb-4">
-            <h3 class="text-h6 mb-4">Map Columns</h3>
-            <v-table class="mb-6">
-              <thead>
-                <tr>
-                  <th class="text-left" style="width: 40%">Field</th>
-                  <th class="text-left" style="width: 10%">Required</th>
-                  <th class="text-left" style="width: 50%">CSV Column</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="field in fields" :key="field.key">
-                  <td>{{ field.label }}</td>
-                  <td>
-                    <v-icon v-if="field.required" color="error" size="small">mdi-asterisk</v-icon>
-                  </td>
-                  <td>
-                    <v-select
-                      v-model="mappings[field.key]"
-                      :items="headers"
-                      label="Select Column"
-                      variant="outlined"
-                      density="compact"
-                      hide-details
-                      clearable
-                      placeholder="Ignore"
-                    ></v-select>
-                  </td>
-                </tr>
-              </tbody>
-            </v-table>
-
-            <h3 class="text-h6 mb-2">Preview Data</h3>
-            <v-data-table
-              :headers="previewHeaders"
-              :items="previewData"
-              density="compact"
-              items-per-page="5"
-              class="elevation-1 mb-4"
-            ></v-data-table>
-
-            <div class="d-flex justify-end">
-              <v-btn variant="text" class="mr-2" @click="step = 2">Back</v-btn>
-              <v-btn
-                color="success"
-                prepend-icon="mdi-check"
-                :disabled="!isValid"
-                @click="completeImport"
-              >
-                Import Data
-              </v-btn>
-            </div>
-          </div>
-        </v-window-item>
-      </v-window>
-
-      <v-alert
-        v-if="error"
-        type="error"
-        variant="tonal"
-        class="mt-4"
-        closable
-        @click:close="error = null"
-      >
-        {{ error }}
-      </v-alert>
-    </v-card>
-  </v-container>
-</template>
-
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import Papa from 'papaparse'
@@ -291,6 +157,140 @@ const reset = () => {
   mappings.value = {}
 }
 </script>
+
+<template>
+  <v-container class="csv-importer fill-height justify-center">
+    <v-card width="900" class="pa-6" elevation="4">
+      <v-card-title class="text-h5 font-weight-bold mb-4 d-flex justify-space-between align-center">
+        <span>CSV Importer</span>
+        <v-chip v-if="step > 1" size="small" variant="outlined">{{ file?.name }}</v-chip>
+      </v-card-title>
+
+      <v-window v-model="step">
+        <!-- Step 1: Upload -->
+        <v-window-item :value="1">
+          <div
+            class="dropzone pa-10 text-center mb-4"
+            :class="{ 'dropzone-active': isDragging }"
+            @dragover.prevent="onDragOver"
+            @dragleave.prevent="onDragLeave"
+            @drop.prevent="onDrop"
+            @click="triggerFileInput"
+          >
+            <v-icon icon="mdi-cloud-upload" size="64" color="primary" class="mb-4"></v-icon>
+            <h3 class="text-h6 mb-2">Drag & Drop CSV File</h3>
+            <p class="text-body-2 text-medium-emphasis">or click to browse</p>
+
+            <v-file-input
+              ref="fileInput"
+              v-model="files"
+              accept=".csv"
+              class="d-none"
+              @update:model-value="onFileSelected"
+            ></v-file-input>
+          </div>
+        </v-window-item>
+
+        <!-- Step 2: Configure & Parse -->
+        <v-window-item :value="2">
+          <div v-if="file" class="text-center mb-6">
+            <v-row justify="center" align="center" class="mb-4">
+              <v-col cols="12" sm="6">
+                <v-select
+                  v-model="delimiter"
+                  :items="delimiters"
+                  label="Select Delimiter"
+                  variant="outlined"
+                  density="comfortable"
+                  hide-details
+                ></v-select>
+              </v-col>
+            </v-row>
+
+            <v-btn
+              color="primary"
+              size="large"
+              :loading="parsing"
+              prepend-icon="mdi-table-search"
+              @click="parseFile"
+            >
+              Parse & Preview
+            </v-btn>
+            <v-btn variant="text" color="error" class="ml-2" @click="reset"> Cancel </v-btn>
+          </div>
+        </v-window-item>
+
+        <!-- Step 3: Map Columns -->
+        <v-window-item :value="3">
+          <div class="mb-4">
+            <h3 class="text-h6 mb-4">Map Columns</h3>
+            <v-table class="mb-6">
+              <thead>
+                <tr>
+                  <th class="text-left" style="width: 40%">Field</th>
+                  <th class="text-left" style="width: 10%">Required</th>
+                  <th class="text-left" style="width: 50%">CSV Column</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="field in fields" :key="field.key">
+                  <td>{{ field.label }}</td>
+                  <td>
+                    <v-icon v-if="field.required" color="error" size="small">mdi-asterisk</v-icon>
+                  </td>
+                  <td>
+                    <v-select
+                      v-model="mappings[field.key]"
+                      :items="headers"
+                      label="Select Column"
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      clearable
+                      placeholder="Ignore"
+                    ></v-select>
+                  </td>
+                </tr>
+              </tbody>
+            </v-table>
+
+            <h3 class="text-h6 mb-2">Preview Data</h3>
+            <v-data-table
+              :headers="previewHeaders"
+              :items="previewData"
+              density="compact"
+              items-per-page="5"
+              class="elevation-1 mb-4"
+            ></v-data-table>
+
+            <div class="d-flex justify-end">
+              <v-btn variant="text" class="mr-2" @click="step = 2">Back</v-btn>
+              <v-btn
+                color="success"
+                prepend-icon="mdi-check"
+                :disabled="!isValid"
+                @click="completeImport"
+              >
+                Import Data
+              </v-btn>
+            </div>
+          </div>
+        </v-window-item>
+      </v-window>
+
+      <v-alert
+        v-if="error"
+        type="error"
+        variant="tonal"
+        class="mt-4"
+        closable
+        @click:close="error = null"
+      >
+        {{ error }}
+      </v-alert>
+    </v-card>
+  </v-container>
+</template>
 
 <style scoped>
 .dropzone {

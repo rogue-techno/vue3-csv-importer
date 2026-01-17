@@ -1,13 +1,3 @@
-<template>
-  <v-app>
-    <v-main>
-      <v-container>
-        <CsvImporter :fields="importFields" @import="onImport" />
-      </v-container>
-    </v-main>
-  </v-app>
-</template>
-
 <script setup lang="ts">
 import CsvImporter from './components/CsvImporter.vue'
 
@@ -23,6 +13,16 @@ const onImport = (data: unknown[]) => {
   alert(`Imported ${data.length} rows! Check console.`)
 }
 </script>
+
+<template>
+  <v-app>
+    <v-main>
+      <v-container>
+        <CsvImporter :fields="importFields" @import="onImport" />
+      </v-container>
+    </v-main>
+  </v-app>
+</template>
 
 <style scoped>
 .logo {
