@@ -23,7 +23,7 @@ const onImport = (data: unknown[]) => {
     </v-main>
   </v-app>
 </template>
-
+2
 <style scoped>
 .logo {
   height: 6em;
