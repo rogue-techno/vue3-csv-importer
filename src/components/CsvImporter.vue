@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Papa from 'papaparse'
 
 interface FieldDef {
@@ -14,6 +15,8 @@ const props = defineProps<{
 
 const emit = defineEmits(['import'])
 
+const { t } = useI18n()
+
 const step = ref(1)
 const isDragging = ref(false)
 const files = ref<File[]>([])
@@ -24,12 +27,12 @@ const fileInput = ref<any>(null)
 const parsing = ref(false)
 
 const delimiter = ref(',')
-const delimiters = [
-  { title: 'Comma (,)', value: ',' },
-  { title: 'Semicolon (;)', value: ';' },
-  { title: 'Tab (\\t)', value: '\t' },
-  { title: 'Pipe (|)', value: '|' },
-]
+const delimiters = computed(() => [
+  { title: t('importer.delimiters.comma'), value: ',' },
+  { title: t('importer.delimiters.semicolon'), value: ';' },
+  { title: t('importer.delimiters.tab'), value: '\t' },
+  { title: t('importer.delimiters.pipe'), value: '|' },
+])
 
 const parsedData = ref<Record<string, unknown>[]>([])
 const headers = ref<string[]>([])
@@ -107,7 +110,7 @@ const onFileSelected = (uploadedFiles: unknown) => {
 const validateAndSetFile = (f: File) => {
   error.value = null
   if (f.type !== 'text/csv' && !f.name.endsWith('.csv')) {
-    error.value = 'Invalid file type. Please upload a CSV file.'
+    error.value = t('importer.invalidType')
     return
   }
   file.value = f
@@ -137,7 +140,7 @@ const parseFile = () => {
     },
     error: (err) => {
       parsing.value = false
-      error.value = 'Error parsing file: ' + err.message
+      error.value = t('importer.errorParsing', { error: err.message })
     },
   })
 }
@@ -162,7 +165,7 @@ const reset = () => {
   <v-container class="csv-importer fill-height justify-center">
     <v-card width="900" class="pa-6" elevation="4">
       <v-card-title class="text-h5 font-weight-bold mb-4 d-flex justify-space-between align-center">
-        <span>CSV Importer</span>
+        <span>{{ t('importer.title') }}</span>
         <v-chip v-if="step > 1" size="small" variant="outlined">{{ file?.name }}</v-chip>
       </v-card-title>
 
@@ -178,8 +181,8 @@ const reset = () => {
             @click="triggerFileInput"
           >
             <v-icon icon="mdi-cloud-upload" size="64" color="primary" class="mb-4"></v-icon>
-            <h3 class="text-h6 mb-2">Drag & Drop CSV File</h3>
-            <p class="text-body-2 text-medium-emphasis">or click to browse</p>
+            <h3 class="text-h6 mb-2">{{ t('importer.dragDrop') }}</h3>
+            <p class="text-body-2 text-medium-emphasis">{{ t('importer.browse') }}</p>
 
             <v-file-input
               ref="fileInput"
@@ -199,7 +202,7 @@ const reset = () => {
                 <v-select
                   v-model="delimiter"
                   :items="delimiters"
-                  label="Select Delimiter"
+                  :label="t('importer.selectDelimiter')"
                   variant="outlined"
                   density="comfortable"
                   hide-details
@@ -214,22 +217,22 @@ const reset = () => {
               prepend-icon="mdi-table-search"
               @click="parseFile"
             >
-              Parse & Preview
+              {{ t('importer.parsePreview') }}
             </v-btn>
-            <v-btn variant="text" color="error" class="ml-2" @click="reset"> Cancel </v-btn>
+            <v-btn variant="text" color="error" class="ml-2" @click="reset"> {{ t('common.cancel') }} </v-btn>
           </div>
         </v-window-item>
 
         <!-- Step 3: Map Columns -->
         <v-window-item :value="3">
           <div class="mb-4">
-            <h3 class="text-h6 mb-4">Map Columns</h3>
+            <h3 class="text-h6 mb-4">{{ t('importer.mapColumns') }}</h3>
             <v-table class="mb-6">
               <thead>
                 <tr>
-                  <th class="text-left" style="width: 40%">Field</th>
-                  <th class="text-left" style="width: 10%">Required</th>
-                  <th class="text-left" style="width: 50%">CSV Column</th>
+                  <th class="text-left" style="width: 40%">{{ t('common.field') }}</th>
+                  <th class="text-left" style="width: 10%">{{ t('common.required') }}</th>
+                  <th class="text-left" style="width: 50%">{{ t('importer.csvColumn') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -242,19 +245,19 @@ const reset = () => {
                     <v-select
                       v-model="mappings[field.key]"
                       :items="headers"
-                      label="Select Column"
+                      :label="t('importer.selectColumn')"
                       variant="outlined"
                       density="compact"
                       hide-details
                       clearable
-                      placeholder="Ignore"
+                      :placeholder="t('common.ignore')"
                     ></v-select>
                   </td>
                 </tr>
               </tbody>
             </v-table>
 
-            <h3 class="text-h6 mb-2">Preview Data</h3>
+            <h3 class="text-h6 mb-2">{{ t('importer.previewData') }}</h3>
             <v-data-table
               :headers="previewHeaders"
               :items="previewData"
@@ -264,14 +267,14 @@ const reset = () => {
             ></v-data-table>
 
             <div class="d-flex justify-end">
-              <v-btn variant="text" class="mr-2" @click="step = 2">Back</v-btn>
+              <v-btn variant="text" class="mr-2" @click="step = 2">{{ t('common.back') }}</v-btn>
               <v-btn
                 color="success"
                 prepend-icon="mdi-check"
                 :disabled="!isValid"
                 @click="completeImport"
               >
-                Import Data
+                {{ t('importer.importData') }}
               </v-btn>
             </div>
           </div>

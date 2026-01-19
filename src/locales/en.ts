@@ -1,0 +1,35 @@
+export default {
+    common: {
+        cancel: 'Cancel',
+        back: 'Back',
+        required: 'Required',
+        field: 'Field',
+        ignore: 'Ignore',
+    },
+    importer: {
+        title: 'CSV Importer',
+        dragDrop: 'Drag & Drop CSV File',
+        browse: 'or click to browse',
+        invalidType: 'Invalid file type. Please upload a CSV file.',
+        errorParsing: 'Error parsing file: {error}',
+        selectDelimiter: 'Select Delimiter',
+        parsePreview: 'Parse & Preview',
+        mapColumns: 'Map Columns',
+        csvColumn: 'CSV Column',
+        selectColumn: 'Select Column',
+        previewData: 'Preview Data',
+        importData: 'Import Data',
+        delimiters: {
+            comma: 'Comma (,)',
+            semicolon: 'Semicolon (;)',
+            tab: 'Tab (\\t)',
+            pipe: 'Pipe (|)',
+        },
+    },
+    fields: {
+        name: 'Full Name',
+        email: 'Email Address',
+        age: 'Age',
+        city: 'City',
+    },
+}

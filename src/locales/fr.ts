@@ -1,0 +1,35 @@
+export default {
+    common: {
+        cancel: 'Annuler',
+        back: 'Retour',
+        required: 'Requis',
+        field: 'Champ',
+        ignore: 'Ignorer',
+    },
+    importer: {
+        title: 'Importateur CSV',
+        dragDrop: 'Glisser-déposer le fichier CSV',
+        browse: 'ou cliquer pour parcourir',
+        invalidType: 'Type de fichier invalide. Veuillez télécharger un fichier CSV.',
+        errorParsing: 'Erreur lors de l’analyse du fichier : {error}',
+        selectDelimiter: 'Sélectionner le délimiteur',
+        parsePreview: 'Analyser et prévisualiser',
+        mapColumns: 'Mapper les colonnes',
+        csvColumn: 'Colonne CSV',
+        selectColumn: 'Sélectionner une colonne',
+        previewData: 'Prévisualisation des données',
+        importData: 'Importer les données',
+        delimiters: {
+            comma: 'Virgule (,)',
+            semicolon: 'Point-virgule (;)',
+            tab: 'Tabulation (\\t)',
+            pipe: 'Barre verticale (|)',
+        },
+    },
+    fields: {
+        name: 'Nom complet',
+        email: 'Adresse e-mail',
+        age: 'Âge',
+        city: 'Ville',
+    },
+}

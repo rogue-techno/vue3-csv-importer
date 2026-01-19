@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import CsvImporter from './components/CsvImporter.vue'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-const importFields = [
-  { key: 'name', label: 'Full Name', required: true },
-  { key: 'email', label: 'Email Address', required: true },
-  { key: 'age', label: 'Age', required: false },
-  { key: 'city', label: 'City', required: false },
-]
+const { locale, t } = useI18n()
+
+const importFields = computed(() => [
+  { key: 'name', label: t('fields.name'), required: true },
+  { key: 'email', label: t('fields.email'), required: true },
+  { key: 'age', label: t('fields.age'), required: false },
+  { key: 'city', label: t('fields.city'), required: false },
+])
 
 const onImport = (data: unknown[]) => {
   console.log('Imported Data:', data)
@@ -16,6 +20,15 @@ const onImport = (data: unknown[]) => {
 
 <template>
   <v-app>
+    <v-app-bar color="primary" density="compact">
+      <v-app-bar-title>Vue 3 CSV Importer</v-app-bar-title>
+      <v-spacer></v-spacer>
+      <v-btn-toggle v-model="locale" mandatory divided density="compact" class="mr-4">
+        <v-btn value="en" size="small">EN</v-btn>
+        <v-btn value="fr" size="small">FR</v-btn>
+      </v-btn-toggle>
+    </v-app-bar>
+
     <v-main>
       <v-container>
         <CsvImporter :fields="importFields" @import="onImport" />
@@ -23,7 +36,7 @@ const onImport = (data: unknown[]) => {
     </v-main>
   </v-app>
 </template>
-2
+
 <style scoped>
 .logo {
   height: 6em;
