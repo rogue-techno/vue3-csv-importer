@@ -17,8 +17,15 @@ export default {
         mapColumns: 'Mapper les colonnes',
         csvColumn: 'Colonne CSV',
         selectColumn: 'Sélectionner une colonne',
+        selectField: 'Sélectionner un champ',
         previewData: 'Prévisualisation des données',
         importData: 'Importer les données',
+        sampleValue: 'Valeur exemple',
+        targetField: 'Champ cible',
+        status: {
+            allMapped: 'Tous les champs requis sont mappés',
+            missing: 'Champs requis manquants : {fields}',
+        },
         delimiters: {
             comma: 'Virgule (,)',
             semicolon: 'Point-virgule (;)',
@@ -31,5 +38,10 @@ export default {
         email: 'Adresse e-mail',
         age: 'Âge',
         city: 'Ville',
+        phone: 'Téléphone',
+        occupation: 'Profession',
+        company: 'Entreprise',
+        salary: 'Salaire',
+        country: 'Pays',
     },
 }

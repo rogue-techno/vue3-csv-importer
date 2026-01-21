@@ -17,8 +17,15 @@ export default {
         mapColumns: 'Map Columns',
         csvColumn: 'CSV Column',
         selectColumn: 'Select Column',
+        selectField: 'Select Field',
         previewData: 'Preview Data',
         importData: 'Import Data',
+        sampleValue: 'Sample Value',
+        targetField: 'Target Field',
+        status: {
+            allMapped: 'All required fields mapped',
+            missing: 'Missing required fields: {fields}',
+        },
         delimiters: {
             comma: 'Comma (,)',
             semicolon: 'Semicolon (;)',
@@ -31,5 +38,10 @@ export default {
         email: 'Email Address',
         age: 'Age',
         city: 'City',
+        phone: 'Phone',
+        occupation: 'Occupation',
+        company: 'Company',
+        salary: 'Salary',
+        country: 'Country',
     },
 }

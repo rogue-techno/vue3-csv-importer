@@ -53,6 +53,28 @@ watch(headers, (newHeaders) => {
   mappings.value = newMappings
 })
 
+// Validation: check which required fields are missing
+const unmappedRequiredFields = computed(() => {
+  return props.fields.filter((f) => f.required && !mappings.value[f.key])
+})
+
+const isValid = computed(() => {
+  return unmappedRequiredFields.value.length === 0
+})
+
+// Helper to get sample value for a field based on current mapping
+const getSampleValue = (fieldKey: string) => {
+  const header = mappings.value[fieldKey] // string | null
+  // Ensure we have a header and data exists
+  if (!header || !parsedData.value || parsedData.value.length === 0) return ''
+  
+  const firstRow = parsedData.value[0]
+  if (!firstRow) return '' // strict check
+
+  const val = firstRow[header]
+  return val !== undefined && val !== null ? String(val) : ''
+}
+
 const previewHeaders = computed(() => {
   return props.fields.map((f) => ({
     title: f.label,
@@ -71,11 +93,6 @@ const previewData = computed(() => {
     })
     return mappedRow
   })
-})
-
-const isValid = computed(() => {
-  // Check if all required fields are mapped
-  return props.fields.every((f) => !f.required || mappings.value[f.key])
 })
 
 const triggerFileInput = () => {
@@ -227,12 +244,33 @@ const reset = () => {
         <v-window-item :value="3">
           <div class="mb-4">
             <h3 class="text-h6 mb-4">{{ t('importer.mapColumns') }}</h3>
+            
+            <v-alert
+              v-if="!isValid"
+              type="warning"
+              variant="tonal"
+              class="mb-4"
+              density="compact"
+            >
+              {{ t('importer.status.missing', { fields: unmappedRequiredFields.map(f => f.label).join(', ') }) }}
+            </v-alert>
+            <v-alert
+              v-else
+              type="success"
+              variant="tonal"
+              class="mb-4"
+              density="compact"
+            >
+              {{ t('importer.status.allMapped') }}
+            </v-alert>
+
             <v-table class="mb-6">
               <thead>
                 <tr>
                   <th class="text-left" style="width: 40%">{{ t('common.field') }}</th>
                   <th class="text-left" style="width: 10%">{{ t('common.required') }}</th>
-                  <th class="text-left" style="width: 50%">{{ t('importer.csvColumn') }}</th>
+                  <th class="text-left" style="width: 30%">{{ t('importer.csvColumn') }}</th>
+                  <th class="text-left" style="width: 20%">{{ t('importer.sampleValue') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -252,6 +290,9 @@ const reset = () => {
                       clearable
                       :placeholder="t('common.ignore')"
                     ></v-select>
+                  </td>
+                  <td class="text-medium-emphasis text-caption text-truncate" style="max-width: 150px">
+                    {{ getSampleValue(field.key) }}
                   </td>
                 </tr>
               </tbody>

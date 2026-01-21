@@ -10,6 +10,11 @@ const importFields = computed(() => [
   { key: 'email', label: t('fields.email'), required: true },
   { key: 'age', label: t('fields.age'), required: false },
   { key: 'city', label: t('fields.city'), required: false },
+  { key: 'phone', label: t('fields.phone'), required: false },
+  { key: 'occupation', label: t('fields.occupation'), required: false },
+  { key: 'company', label: t('fields.company'), required: false },
+  { key: 'salary', label: t('fields.salary'), required: false },
+  { key: 'country', label: t('fields.country'), required: false },
 ])
 
 const onImport = (data: unknown[]) => {
