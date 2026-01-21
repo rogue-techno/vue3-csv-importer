@@ -64,7 +64,7 @@ const getSampleValue = (fieldKey: string) => {
   const header = mappings.value[fieldKey] // string | null
   // Ensure we have a header and data exists
   if (!header || !parsedData.value || parsedData.value.length === 0) return ''
-  
+
   const firstRow = parsedData.value[0]
   if (!firstRow) return '' // strict check
 
@@ -91,8 +91,6 @@ const previewData = computed(() => {
     return mappedRow
   })
 })
-
-
 
 const onFileSelected = (uploadedFiles: unknown) => {
   // Vuetify v-file-input model is Array or File depending on config.
@@ -175,7 +173,7 @@ const reset = () => {
             icon="mdi-cloud-upload"
             density="comfortable"
             @update:model-value="onFileSelected"
-          ></v-file-upload>
+          />
         </v-window-item>
 
         <!-- Step 2: Configure & Parse -->
@@ -190,7 +188,7 @@ const reset = () => {
                   variant="outlined"
                   density="comfortable"
                   hide-details
-                ></v-select>
+                />
               </v-col>
             </v-row>
 
@@ -203,7 +201,9 @@ const reset = () => {
             >
               {{ t('importer.parsePreview') }}
             </v-btn>
-            <v-btn variant="text" color="error" class="ml-2" @click="reset"> {{ t('common.cancel') }} </v-btn>
+            <v-btn variant="text" color="error" class="ml-2" @click="reset">
+              {{ t('common.cancel') }}
+            </v-btn>
           </div>
         </v-window-item>
 
@@ -211,23 +211,15 @@ const reset = () => {
         <v-window-item :value="3">
           <div class="mb-4">
             <h3 class="text-h6 mb-4">{{ t('importer.mapColumns') }}</h3>
-            
-            <v-alert
-              v-if="!isValid"
-              type="warning"
-              variant="tonal"
-              class="mb-4"
-              density="compact"
-            >
-              {{ t('importer.status.missing', { fields: unmappedRequiredFields.map(f => f.label).join(', ') }) }}
+
+            <v-alert v-if="!isValid" type="warning" variant="tonal" class="mb-4" density="compact">
+              {{
+                t('importer.status.missing', {
+                  fields: unmappedRequiredFields.map((f) => f.label).join(', '),
+                })
+              }}
             </v-alert>
-            <v-alert
-              v-else
-              type="success"
-              variant="tonal"
-              class="mb-4"
-              density="compact"
-            >
+            <v-alert v-else type="success" variant="tonal" class="mb-4" density="compact">
               {{ t('importer.status.allMapped') }}
             </v-alert>
 
@@ -256,9 +248,12 @@ const reset = () => {
                       hide-details
                       clearable
                       :placeholder="t('common.ignore')"
-                    ></v-select>
+                    />
                   </td>
-                  <td class="text-medium-emphasis text-caption text-truncate" style="max-width: 150px">
+                  <td
+                    class="text-medium-emphasis text-caption text-truncate"
+                    style="max-width: 150px"
+                  >
                     {{ getSampleValue(field.key) }}
                   </td>
                 </tr>
@@ -272,7 +267,7 @@ const reset = () => {
               density="compact"
               items-per-page="5"
               class="elevation-1 mb-4"
-            ></v-data-table>
+            />
 
             <div class="d-flex justify-end">
               <v-btn variant="text" class="mr-2" @click="step = 2">{{ t('common.back') }}</v-btn>

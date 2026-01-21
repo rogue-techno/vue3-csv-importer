@@ -27,7 +27,7 @@ const onImport = (data: unknown[]) => {
   <v-app>
     <v-app-bar color="primary" density="compact">
       <v-app-bar-title>Vue 3 CSV Importer</v-app-bar-title>
-      <v-spacer></v-spacer>
+      <v-spacer />
       <v-btn-toggle v-model="locale" mandatory divided density="compact" class="mr-4">
         <v-btn value="en" size="small">EN</v-btn>
         <v-btn value="fr" size="small">FR</v-btn>
