@@ -9,7 +9,8 @@ export default {
     importer: {
         title: 'CSV Importer',
         dragDrop: 'Drag & Drop CSV File',
-        browse: 'or click to browse',
+        browse: 'Click to browse',
+        or: 'or',
         invalidType: 'Invalid file type. Please upload a CSV file.',
         errorParsing: 'Error parsing file: {error}',
         selectDelimiter: 'Select Delimiter',

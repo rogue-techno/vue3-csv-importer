@@ -18,12 +18,9 @@ const emit = defineEmits(['import'])
 const { t } = useI18n()
 
 const step = ref(1)
-const isDragging = ref(false)
 const files = ref<File[]>([])
 const file = ref<File | null>(null)
 const error = ref<string | null>(null)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const fileInput = ref<any>(null)
 const parsing = ref(false)
 
 const delimiter = ref(',')
@@ -95,26 +92,7 @@ const previewData = computed(() => {
   })
 })
 
-const triggerFileInput = () => {
-  fileInput.value?.$el.querySelector('input').click()
-}
 
-const onDragOver = () => {
-  isDragging.value = true
-}
-
-const onDragLeave = () => {
-  isDragging.value = false
-}
-
-const onDrop = (event: DragEvent) => {
-  isDragging.value = false
-  const droppedFiles = event.dataTransfer?.files
-  if (droppedFiles && droppedFiles.length > 0) {
-    const file = droppedFiles[0]
-    if (file) validateAndSetFile(file)
-  }
-}
 
 const onFileSelected = (uploadedFiles: unknown) => {
   // Vuetify v-file-input model is Array or File depending on config.
@@ -189,26 +167,15 @@ const reset = () => {
       <v-window v-model="step">
         <!-- Step 1: Upload -->
         <v-window-item :value="1">
-          <div
-            class="dropzone pa-10 text-center mb-4"
-            :class="{ 'dropzone-active': isDragging }"
-            @dragover.prevent="onDragOver"
-            @dragleave.prevent="onDragLeave"
-            @drop.prevent="onDrop"
-            @click="triggerFileInput"
-          >
-            <v-icon icon="mdi-cloud-upload" size="64" color="primary" class="mb-4"></v-icon>
-            <h3 class="text-h6 mb-2">{{ t('importer.dragDrop') }}</h3>
-            <p class="text-body-2 text-medium-emphasis">{{ t('importer.browse') }}</p>
-
-            <v-file-input
-              ref="fileInput"
-              v-model="files"
-              accept=".csv"
-              class="d-none"
-              @update:model-value="onFileSelected"
-            ></v-file-input>
-          </div>
+          <v-file-upload
+            v-model="files"
+            :title="t('importer.dragDrop')"
+            :browse-text="t('importer.browse')"
+            :divider-text="t('importer.or')"
+            icon="mdi-cloud-upload"
+            density="comfortable"
+            @update:model-value="onFileSelected"
+          ></v-file-upload>
         </v-window-item>
 
         <!-- Step 2: Configure & Parse -->
@@ -335,23 +302,3 @@ const reset = () => {
     </v-card>
   </v-container>
 </template>
-
-<style scoped>
-.dropzone {
-  border: 2px dashed rgba(var(--v-theme-primary), 0.5);
-  transition: all 0.3s ease;
-  cursor: pointer;
-  min-height: 200px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  border-radius: 8px;
-}
-
-.dropzone-active {
-  border-color: rgba(var(--v-theme-primary), 1);
-  background-color: rgba(var(--v-theme-primary), 0.05);
-  transform: scale(1.02);
-}
-</style>

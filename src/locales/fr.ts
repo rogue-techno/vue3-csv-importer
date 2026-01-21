@@ -9,7 +9,8 @@ export default {
     importer: {
         title: 'Importateur CSV',
         dragDrop: 'Glisser-déposer le fichier CSV',
-        browse: 'ou cliquer pour parcourir',
+        browse: 'Cliquer pour parcourir',
+        or: 'ou',
         invalidType: 'Type de fichier invalide. Veuillez télécharger un fichier CSV.',
         errorParsing: 'Erreur lors de l’analyse du fichier : {error}',
         selectDelimiter: 'Sélectionner le délimiteur',

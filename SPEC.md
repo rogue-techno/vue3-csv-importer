@@ -1,4 +1,5 @@
 - The component is a dropzone that allows users to drag and drop CSV files into it.
+- Use Vuetify's v-file-upload component is used to select the file.
 - Once a file is dropped, before parsing it, the user can select the delimiter.
 - The must take a varying list of parameters to match the CSV columns to.
 - The user must have a way to select which column to map to which parameter.
