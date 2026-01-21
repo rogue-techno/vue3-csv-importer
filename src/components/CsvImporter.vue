@@ -168,8 +168,6 @@ const reset = () => {
           <v-file-upload
             v-model="files"
             :title="t('importer.dragDrop')"
-            :browse-text="t('importer.browse')"
-            :divider-text="t('importer.or')"
             icon="mdi-cloud-upload"
             density="comfortable"
             @update:model-value="onFileSelected"

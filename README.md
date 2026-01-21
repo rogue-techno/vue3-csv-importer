@@ -8,3 +8,4 @@ AI Guidelines:
 - Must be with written as SFC (Single File Component) in TypeScript
 - SFCs tags must be in order in the following order: <script>, <template>, <style>
 - Labels must translated to french and english
+- After writing the code, run eslint and prettier to fix any issues
