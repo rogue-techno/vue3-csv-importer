@@ -20,7 +20,7 @@ const { t } = useI18n()
 const step = ref(1)
 const files = ref<File[]>([])
 const file = ref<File | null>(null)
-const error = ref<string | null>(null)
+const error = ref<{ key: string; params?: Record<string, string> } | null>(null)
 const parsing = ref(false)
 
 const delimiter = ref(',')
@@ -103,7 +103,7 @@ const onFileSelected = (uploadedFiles: unknown) => {
 const validateAndSetFile = (f: File) => {
   error.value = null
   if (f.type !== 'text/csv' && !f.name.endsWith('.csv')) {
-    error.value = t('importer.invalidType')
+    error.value = { key: 'importer.invalidType' }
     return
   }
   file.value = f
@@ -133,7 +133,7 @@ const parseFile = () => {
     },
     error: (err) => {
       parsing.value = false
-      error.value = t('importer.errorParsing', { error: err.message })
+      error.value = { key: 'importer.errorParsing', params: { error: err.message } }
     },
   })
 }
@@ -282,15 +282,8 @@ const reset = () => {
         </v-window-item>
       </v-window>
 
-      <v-alert
-        v-if="error"
-        type="error"
-        variant="tonal"
-        class="mt-4"
-        closable
-        @click:close="error = null"
-      >
-        {{ error }}
+      <v-alert v-if="error" type="error" variant="tonal" class="mt-4">
+        {{ t(error.key, error.params || {}) }}
       </v-alert>
     </v-card>
   </v-container>
