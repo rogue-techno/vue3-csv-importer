@@ -1,7 +1,13 @@
+- The should be contained in the `AppDialog` component.
+- The dialog should be persistent, unless the user clicks on the cancel button or closes the dialog.
+- Closing the dialog should reset the component.
 - The component is a dropzone that allows users to drag and drop CSV files into it.
-- Use Vuetify's v-file-upload component is used to select the file.
-- Once a file is dropped, before parsing it, the user can select the delimiter.
-- The must take a varying list of parameters to match the CSV columns to.
-- The user must have a way to select which column to map to which parameter.
-- The component should have a preview of the parsed data.
+- There should be 3 steps to import the CSV file.
+- Step1: Use Vuetify's v-file-upload component is used to select the file.
+- Step2: Once a file is dropped, before parsing it, the user can select the delimiter.
+  - This step should have a cancel, back and next button.
+- Step3: The must take a varying list of parameters to match the CSV columns to.
+  - The user must have a way to select which column to map to which parameter.
+  - The component should have a preview of the parsed data.
+  - This step should have a cancel, back and next button.
 - The component emits the parsed data to the parent component.

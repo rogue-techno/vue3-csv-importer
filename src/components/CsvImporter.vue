@@ -159,11 +159,7 @@ const close = () => {
 </script>
 
 <template>
-  <AppDialog v-model="dialogModel" :title="t('importer.title')" max-width="950">
-    <div class="d-flex justify-end mb-4">
-      <v-chip v-if="step > 1" size="small" variant="outlined">{{ file?.name }}</v-chip>
-    </div>
-
+  <AppDialog v-model="dialogModel" :title="t('importer.title')" max-width="950" persistent>
     <v-window v-model="step">
       <!-- Step 1: Upload -->
       <v-window-item :value="1">
@@ -266,18 +262,20 @@ const close = () => {
     <!-- Step-specific action buttons -->
     <template #actions>
       <template v-if="step === 1">
-        <v-btn variant="text" @click="close">{{ t('common.cancel') }}</v-btn>
+        <v-btn variant="plain" @click="close">{{ t('common.cancel') }}</v-btn>
         <v-btn :disabled="!file" color="primary" @click="step = 2">
           {{ t('common.next') }}
         </v-btn>
       </template>
       <template v-else-if="step === 2">
-        <v-btn variant="text" @click="reset">{{ t('common.cancel') }}</v-btn>
+        <v-btn variant="plain" @click="close">{{ t('common.cancel') }}</v-btn>
+        <v-btn variant="text" @click="goBack">{{ t('common.back') }}</v-btn>
         <v-btn color="primary" :loading="parsing" @click="parseFile">
-          {{ t('importer.parsePreview') }}
+          {{ t('common.next') }}
         </v-btn>
       </template>
       <template v-else-if="step === 3">
+        <v-btn variant="plain" @click="close">{{ t('common.cancel') }}</v-btn>
         <v-btn variant="text" @click="goBack">{{ t('common.back') }}</v-btn>
         <v-btn color="success" :disabled="!isValid" @click="completeImport">
           {{ t('importer.importData') }}
