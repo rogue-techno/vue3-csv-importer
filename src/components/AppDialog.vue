@@ -56,11 +56,11 @@ const handleSubmit = () => {
 
       <v-card-actions class="pa-4 justify-end">
         <slot name="actions">
-          <v-btn variant="text" color="secondary" @click="handleCancel">
+          <v-btn variant="plain" @click="handleCancel">
             {{ computedCancelLabel }}
           </v-btn>
           <v-btn
-            variant="flat"
+            variant="elevated"
             color="primary"
             :disabled="submitDisabled"
             :loading="submitLoading"
