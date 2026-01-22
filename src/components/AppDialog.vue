@@ -50,13 +50,9 @@ const handleSubmit = () => {
         <v-btn icon="mdi-close" variant="text" density="comfortable" @click="close" />
       </v-card-title>
 
-      <v-divider />
-
       <v-card-text class="pa-4">
         <slot />
       </v-card-text>
-
-      <v-divider />
 
       <v-card-actions class="pa-4 justify-end">
         <slot name="actions">
