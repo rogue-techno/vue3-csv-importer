@@ -9,7 +9,7 @@ interface FieldDef {
   required?: boolean
 }
 
-const props = defineProps<{
+const { fields } = defineProps<{
   fields: FieldDef[]
 }>()
 
@@ -38,7 +38,7 @@ const mappings = ref<Record<string, string | null>>({})
 // Initialize mappings when fields change or headers are populated
 watch(headers, (newHeaders) => {
   const newMappings: Record<string, string | null> = {}
-  props.fields.forEach((field) => {
+  fields.forEach((field) => {
     // Auto-match if header matches field key or label (case-insensitive)
     const match = newHeaders.find(
       (h) =>
@@ -52,7 +52,7 @@ watch(headers, (newHeaders) => {
 
 // Validation: check which required fields are missing
 const unmappedRequiredFields = computed(() => {
-  return props.fields.filter((f) => f.required && !mappings.value[f.key])
+  return fields.filter((f) => f.required && !mappings.value[f.key])
 })
 
 const isValid = computed(() => {
@@ -73,7 +73,7 @@ const getSampleValue = (fieldKey: string) => {
 }
 
 const previewHeaders = computed(() => {
-  return props.fields.map((f) => ({
+  return fields.map((f) => ({
     title: f.label,
     key: f.key,
   }))
@@ -82,7 +82,7 @@ const previewHeaders = computed(() => {
 const previewData = computed(() => {
   return parsedData.value.map((row) => {
     const mappedRow: Record<string, unknown> = {}
-    props.fields.forEach((f) => {
+    fields.forEach((f) => {
       const csvCol = mappings.value[f.key]
       if (csvCol) {
         mappedRow[f.key] = row[csvCol]

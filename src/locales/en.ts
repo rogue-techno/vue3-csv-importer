@@ -43,4 +43,8 @@ export default {
     salary: 'Salary',
     country: 'Country',
   },
+  dialog: {
+    cancel: 'Cancel',
+    submit: 'Submit',
+  },
 }

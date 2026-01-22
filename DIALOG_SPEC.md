@@ -1,0 +1,8 @@
+- A reusable v-dialog that will enforce consistent styling across the app
+- The component should expose all props and events a v-dialog would
+- The component's default slot should be inside a v-card-text
+- Provide default buttons, cancel and submit (in that order), with overrideable labels
+- The buttons should be aligned to the right
+- Provide a slot for custom buttons
+- The dialog's title, content and buttons should be have paddings/margins that make it all aligned properly
+- The dialog should have a close icon button in the top right corner

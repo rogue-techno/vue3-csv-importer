@@ -43,4 +43,8 @@ export default {
     salary: 'Salaire',
     country: 'Pays',
   },
+  dialog: {
+    cancel: 'Annuler',
+    submit: 'Soumettre',
+  },
 }
