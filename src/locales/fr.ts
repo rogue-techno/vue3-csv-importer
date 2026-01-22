@@ -10,6 +10,9 @@ export default {
   importer: {
     title: 'Importateur CSV',
     dragDrop: 'Glisser-déposer un fichier CSV',
+    or: 'ou',
+    pasteData: 'Coller les données CSV',
+    pasteDataPlaceholder: 'Collez vos données CSV ici...',
     invalidType: 'Type de fichier invalide. Veuillez télécharger un fichier CSV.',
     errorParsing: 'Erreur lors de l’analyse du fichier : {error}',
     selectDelimiter: 'Sélectionner le délimiteur',
@@ -27,10 +30,10 @@ export default {
       missing: 'Champs requis manquants : {fields}',
     },
     delimiters: {
-      comma: 'Virgule (,)',
-      semicolon: 'Point-virgule (;)',
-      tab: 'Tabulation (\\t)',
-      pipe: 'Barre verticale (|)',
+      comma: 'Virgule ( , )',
+      semicolon: 'Point-virgule ( ; )',
+      tab: 'Tabulation ( \\t )',
+      pipe: 'Barre verticale ( {"|"} )',
     },
   },
   fields: {

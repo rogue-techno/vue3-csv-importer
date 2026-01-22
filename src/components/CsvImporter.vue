@@ -23,13 +23,14 @@ const { t } = useI18n()
 const step = ref(1)
 const files = ref<File[]>([])
 const file = ref<File | null>(null)
+const pastedCsv = ref('')
 const error = ref<{ key: string; params?: Record<string, string> } | null>(null)
 const parsing = ref(false)
 
-const delimiter = ref(',')
+const delimiter = ref(';')
 const delimiters = computed(() => [
-  { title: t('importer.delimiters.comma'), value: ',' },
   { title: t('importer.delimiters.semicolon'), value: ';' },
+  { title: t('importer.delimiters.comma'), value: ',' },
   { title: t('importer.delimiters.tab'), value: '\t' },
   { title: t('importer.delimiters.pipe'), value: '|' },
 ])
@@ -37,6 +38,11 @@ const delimiters = computed(() => [
 const parsedData = ref<Record<string, unknown>[]>([])
 const headers = ref<string[]>([])
 const mappings = ref<Record<string, string | null>>({})
+
+// Check if we have data to parse (file or pasted)
+const hasDataToParse = computed(() => {
+  return file.value !== null || pastedCsv.value.trim().length > 0
+})
 
 // Initialize mappings when fields change or headers are populated
 watch(headers, (newHeaders) => {
@@ -103,32 +109,49 @@ const validateAndSetFile = (f: File) => {
     return
   }
   file.value = f
+  pastedCsv.value = '' // Clear pasted data when file is selected
   parsedData.value = []
   headers.value = []
 }
 
+const onPastedCsvChange = () => {
+  // Clear file when user pastes data
+  if (pastedCsv.value.trim().length > 0) {
+    file.value = null
+    files.value = []
+  }
+}
+
 const parseFile = () => {
-  if (!file.value) return
+  if (!hasDataToParse.value) return
 
   parsing.value = true
-  Papa.parse(file.value, {
+  error.value = null
+
+  const parseOptions = {
     header: true,
     skipEmptyLines: true,
     delimiter: delimiter.value,
-    complete: (results) => {
+    complete: (results: Papa.ParseResult<Record<string, unknown>>) => {
       parsing.value = false
       if (results.errors.length > 0) {
         console.warn('Parse errors:', results.errors)
       }
-      parsedData.value = results.data as Record<string, unknown>[]
+      parsedData.value = results.data
       headers.value = results.meta.fields || []
       step.value = 2
     },
-    error: (err) => {
+    error: (err: Error) => {
       parsing.value = false
       error.value = { key: 'importer.errorParsing', params: { error: err.message } }
     },
-  })
+  }
+
+  if (file.value) {
+    Papa.parse(file.value, parseOptions)
+  } else if (pastedCsv.value.trim()) {
+    Papa.parse(pastedCsv.value, parseOptions)
+  }
 }
 
 const goBack = () => {
@@ -145,6 +168,7 @@ const completeImport = () => {
 const reset = () => {
   file.value = null
   files.value = []
+  pastedCsv.value = ''
   parsedData.value = []
   headers.value = []
   step.value = 1
@@ -171,7 +195,23 @@ const close = () => {
           @update:model-value="onFileSelected"
         />
 
-        <v-row v-if="file" justify="center" align="center" class="mt-4">
+        <div class="d-flex align-center my-4">
+          <v-divider />
+          <span class="mx-4 text-medium-emphasis">{{ t('importer.or') }}</span>
+          <v-divider />
+        </div>
+
+        <v-textarea
+          v-model="pastedCsv"
+          :label="t('importer.pasteData')"
+          :placeholder="t('importer.pasteDataPlaceholder')"
+          variant="outlined"
+          rows="6"
+          hide-details
+          @update:model-value="onPastedCsvChange"
+        />
+
+        <v-row v-if="hasDataToParse" justify="center" align="center" class="mt-4">
           <v-col cols="12" sm="6">
             <v-select
               v-model="delimiter"
@@ -258,7 +298,7 @@ const close = () => {
     <template #actions>
       <template v-if="step === 1">
         <v-btn variant="plain" @click="close">{{ t('common.cancel') }}</v-btn>
-        <v-btn :disabled="!file" color="primary" :loading="parsing" @click="parseFile">
+        <v-btn :disabled="!hasDataToParse" color="primary" :loading="parsing" @click="parseFile">
           {{ t('common.next') }}
         </v-btn>
       </template>

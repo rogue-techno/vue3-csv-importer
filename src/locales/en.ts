@@ -10,6 +10,9 @@ export default {
   importer: {
     title: 'CSV Importer',
     dragDrop: 'Drag & Drop CSV File',
+    or: 'or',
+    pasteData: 'Paste CSV Data',
+    pasteDataPlaceholder: 'Paste your CSV data here...',
     invalidType: 'Invalid file type. Please upload a CSV file.',
     errorParsing: 'Error parsing file: {error}',
     selectDelimiter: 'Select Delimiter',
@@ -27,10 +30,10 @@ export default {
       missing: 'Missing required fields: {fields}',
     },
     delimiters: {
-      comma: 'Comma (,)',
-      semicolon: 'Semicolon (;)',
-      tab: 'Tab (\\t)',
-      pipe: 'Pipe (|)',
+      comma: 'Comma ( , )',
+      semicolon: 'Semicolon ( ; )',
+      tab: 'Tab ( \\t )',
+      pipe: "Pipe ( {'|'} )",
     },
   },
   fields: {
