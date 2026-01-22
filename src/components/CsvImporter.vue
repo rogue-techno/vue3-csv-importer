@@ -122,13 +122,17 @@ const parseFile = () => {
       }
       parsedData.value = results.data as Record<string, unknown>[]
       headers.value = results.meta.fields || []
-      step.value = 3
+      step.value = 2
     },
     error: (err) => {
       parsing.value = false
       error.value = { key: 'importer.errorParsing', params: { error: err.message } }
     },
   })
+}
+
+const goBack = () => {
+  step.value = 1
 }
 
 const completeImport = () => {
@@ -148,10 +152,6 @@ const reset = () => {
   mappings.value = {}
 }
 
-const goBack = () => {
-  step.value = step.value - 1
-}
-
 const close = () => {
   reset()
   dialogModel.value = false
@@ -161,7 +161,7 @@ const close = () => {
 <template>
   <AppDialog v-model="dialogModel" :title="t('importer.title')" max-width="950" persistent>
     <v-window v-model="step">
-      <!-- Step 1: Upload -->
+      <!-- Step 1: Upload & Configure -->
       <v-window-item :value="1">
         <v-file-upload
           v-model="files"
@@ -170,28 +170,23 @@ const close = () => {
           density="comfortable"
           @update:model-value="onFileSelected"
         />
+
+        <v-row v-if="file" justify="center" align="center" class="mt-4">
+          <v-col cols="12" sm="6">
+            <v-select
+              v-model="delimiter"
+              :items="delimiters"
+              :label="t('importer.selectDelimiter')"
+              variant="outlined"
+              density="comfortable"
+              hide-details
+            />
+          </v-col>
+        </v-row>
       </v-window-item>
 
-      <!-- Step 2: Configure & Parse -->
+      <!-- Step 2: Map Columns -->
       <v-window-item :value="2">
-        <div v-if="file" class="text-center">
-          <v-row justify="center" align="center">
-            <v-col cols="12" sm="6">
-              <v-select
-                v-model="delimiter"
-                :items="delimiters"
-                :label="t('importer.selectDelimiter')"
-                variant="outlined"
-                density="comfortable"
-                hide-details
-              />
-            </v-col>
-          </v-row>
-        </div>
-      </v-window-item>
-
-      <!-- Step 3: Map Columns -->
-      <v-window-item :value="3">
         <div>
           <h3 class="text-h6 mb-4">{{ t('importer.mapColumns') }}</h3>
 
@@ -263,18 +258,11 @@ const close = () => {
     <template #actions>
       <template v-if="step === 1">
         <v-btn variant="plain" @click="close">{{ t('common.cancel') }}</v-btn>
-        <v-btn :disabled="!file" color="primary" @click="step = 2">
+        <v-btn :disabled="!file" color="primary" :loading="parsing" @click="parseFile">
           {{ t('common.next') }}
         </v-btn>
       </template>
       <template v-else-if="step === 2">
-        <v-btn variant="plain" @click="close">{{ t('common.cancel') }}</v-btn>
-        <v-btn variant="text" @click="goBack">{{ t('common.back') }}</v-btn>
-        <v-btn color="primary" :loading="parsing" @click="parseFile">
-          {{ t('common.next') }}
-        </v-btn>
-      </template>
-      <template v-else-if="step === 3">
         <v-btn variant="plain" @click="close">{{ t('common.cancel') }}</v-btn>
         <v-btn variant="text" @click="goBack">{{ t('common.back') }}</v-btn>
         <v-btn color="success" :disabled="!isValid" @click="completeImport">
