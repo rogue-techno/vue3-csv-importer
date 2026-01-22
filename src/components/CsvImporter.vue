@@ -105,7 +105,6 @@ const validateAndSetFile = (f: File) => {
   file.value = f
   parsedData.value = []
   headers.value = []
-  step.value = 2
 }
 
 const parseFile = () => {
@@ -268,6 +267,9 @@ const close = () => {
     <template #actions>
       <template v-if="step === 1">
         <v-btn variant="text" @click="close">{{ t('common.cancel') }}</v-btn>
+        <v-btn :disabled="!file" color="primary" @click="step = 2">
+          {{ t('common.next') }}
+        </v-btn>
       </template>
       <template v-else-if="step === 2">
         <v-btn variant="text" @click="reset">{{ t('common.cancel') }}</v-btn>

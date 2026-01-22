@@ -2,6 +2,7 @@ export default {
   common: {
     cancel: 'Annuler',
     back: 'Retour',
+    next: 'Suivant',
     required: 'Requis',
     field: 'Champ',
     ignore: 'Ignorer',
