@@ -21,12 +21,14 @@ const importFields = computed(() => [
 const onImport = (data: unknown[]) => {
   console.log('Imported Data:', data)
   alert(`Imported ${data.length} rows! Check console.`)
+  importDialog.value = false
 }
 
 // Dialog examples
 const defaultDialog = ref(false)
 const customDialog = ref(false)
 const confirmDialog = ref(false)
+const importDialog = ref(false)
 
 const handleDefaultSubmit = () => {
   alert('Default dialog submitted!')
@@ -112,6 +114,7 @@ const handleAction2 = () => {
           title="Confirm Delete"
           max-width="400"
           submit-label="Delete"
+          pers
           @submit="handleConfirmDelete"
           @cancel="confirmDialog = false"
         >
@@ -120,8 +123,13 @@ const handleAction2 = () => {
           </v-alert>
         </AppDialog>
 
-        <!-- CSV Importer -->
-        <CsvImporter :fields="importFields" @import="onImport" />
+        <!-- CSV Import Dialog (CsvImporter now uses AppDialog internally) -->
+        <CsvImporter v-model="importDialog" :fields="importFields" @import="onImport" />
+
+        <!-- Import Button -->
+        <v-btn color="primary" size="large" prepend-icon="mdi-upload" @click="importDialog = true">
+          Import CSV
+        </v-btn>
       </v-container>
     </v-main>
   </v-app>

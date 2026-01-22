@@ -2,6 +2,7 @@
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Papa from 'papaparse'
+import AppDialog from './AppDialog.vue'
 
 interface FieldDef {
   key: string
@@ -12,6 +13,8 @@ interface FieldDef {
 const { fields } = defineProps<{
   fields: FieldDef[]
 }>()
+
+const dialogModel = defineModel<boolean>({ required: true })
 
 const emit = defineEmits(['import'])
 
@@ -39,7 +42,6 @@ const mappings = ref<Record<string, string | null>>({})
 watch(headers, (newHeaders) => {
   const newMappings: Record<string, string | null> = {}
   fields.forEach((field) => {
-    // Auto-match if header matches field key or label (case-insensitive)
     const match = newHeaders.find(
       (h) =>
         h.toLowerCase() === field.key.toLowerCase() ||
@@ -50,7 +52,6 @@ watch(headers, (newHeaders) => {
   mappings.value = newMappings
 })
 
-// Validation: check which required fields are missing
 const unmappedRequiredFields = computed(() => {
   return fields.filter((f) => f.required && !mappings.value[f.key])
 })
@@ -59,15 +60,11 @@ const isValid = computed(() => {
   return unmappedRequiredFields.value.length === 0
 })
 
-// Helper to get sample value for a field based on current mapping
 const getSampleValue = (fieldKey: string) => {
-  const header = mappings.value[fieldKey] // string | null
-  // Ensure we have a header and data exists
+  const header = mappings.value[fieldKey]
   if (!header || !parsedData.value || parsedData.value.length === 0) return ''
-
   const firstRow = parsedData.value[0]
-  if (!firstRow) return '' // strict check
-
+  if (!firstRow) return ''
   const val = firstRow[header]
   return val !== undefined && val !== null ? String(val) : ''
 }
@@ -93,7 +90,6 @@ const previewData = computed(() => {
 })
 
 const onFileSelected = (uploadedFiles: unknown) => {
-  // Vuetify v-file-input model is Array or File depending on config.
   const selected = Array.isArray(uploadedFiles) ? uploadedFiles[0] : uploadedFiles
   if (selected && selected instanceof File) {
     validateAndSetFile(selected)
@@ -107,7 +103,6 @@ const validateAndSetFile = (f: File) => {
     return
   }
   file.value = f
-  // Reset data if new file
   parsedData.value = []
   headers.value = []
   step.value = 2
@@ -126,7 +121,6 @@ const parseFile = () => {
       if (results.errors.length > 0) {
         console.warn('Parse errors:', results.errors)
       }
-
       parsedData.value = results.data as Record<string, unknown>[]
       headers.value = results.meta.fields || []
       step.value = 3
@@ -141,6 +135,8 @@ const parseFile = () => {
 const completeImport = () => {
   if (!isValid.value) return
   emit('import', previewData.value)
+  reset()
+  dialogModel.value = false
 }
 
 const reset = () => {
@@ -152,139 +148,139 @@ const reset = () => {
   error.value = null
   mappings.value = {}
 }
+
+const goBack = () => {
+  step.value = step.value - 1
+}
+
+const close = () => {
+  reset()
+  dialogModel.value = false
+}
 </script>
 
 <template>
-  <v-container class="csv-importer fill-height justify-center">
-    <v-card width="900" class="pa-6" elevation="4">
-      <v-card-title class="text-h5 font-weight-bold mb-4 d-flex justify-space-between align-center">
-        <span>{{ t('importer.title') }}</span>
-        <v-chip v-if="step > 1" size="small" variant="outlined">{{ file?.name }}</v-chip>
-      </v-card-title>
+  <AppDialog v-model="dialogModel" :title="t('importer.title')" max-width="950">
+    <div class="d-flex justify-end mb-4">
+      <v-chip v-if="step > 1" size="small" variant="outlined">{{ file?.name }}</v-chip>
+    </div>
 
-      <v-window v-model="step">
-        <!-- Step 1: Upload -->
-        <v-window-item :value="1">
-          <v-file-upload
-            v-model="files"
-            :title="t('importer.dragDrop')"
-            icon="mdi-cloud-upload"
-            density="comfortable"
-            @update:model-value="onFileSelected"
+    <v-window v-model="step">
+      <!-- Step 1: Upload -->
+      <v-window-item :value="1">
+        <v-file-upload
+          v-model="files"
+          :title="t('importer.dragDrop')"
+          icon="mdi-cloud-upload"
+          density="comfortable"
+          @update:model-value="onFileSelected"
+        />
+      </v-window-item>
+
+      <!-- Step 2: Configure & Parse -->
+      <v-window-item :value="2">
+        <div v-if="file" class="text-center">
+          <v-row justify="center" align="center">
+            <v-col cols="12" sm="6">
+              <v-select
+                v-model="delimiter"
+                :items="delimiters"
+                :label="t('importer.selectDelimiter')"
+                variant="outlined"
+                density="comfortable"
+                hide-details
+              />
+            </v-col>
+          </v-row>
+        </div>
+      </v-window-item>
+
+      <!-- Step 3: Map Columns -->
+      <v-window-item :value="3">
+        <div>
+          <h3 class="text-h6 mb-4">{{ t('importer.mapColumns') }}</h3>
+
+          <v-alert v-if="!isValid" type="warning" variant="tonal" class="mb-4" density="compact">
+            {{
+              t('importer.status.missing', {
+                fields: unmappedRequiredFields.map((f) => f.label).join(', '),
+              })
+            }}
+          </v-alert>
+          <v-alert v-else type="success" variant="tonal" class="mb-4" density="compact">
+            {{ t('importer.status.allMapped') }}
+          </v-alert>
+
+          <v-table class="mb-6">
+            <thead>
+              <tr>
+                <th class="text-left" style="width: 40%">{{ t('common.field') }}</th>
+                <th class="text-left" style="width: 10%">{{ t('common.required') }}</th>
+                <th class="text-left" style="width: 30%">{{ t('importer.csvColumn') }}</th>
+                <th class="text-left" style="width: 20%">{{ t('importer.sampleValue') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="field in fields" :key="field.key">
+                <td>{{ field.label }}</td>
+                <td>
+                  <v-icon v-if="field.required" color="error" size="small">mdi-asterisk</v-icon>
+                </td>
+                <td>
+                  <v-select
+                    v-model="mappings[field.key]"
+                    :items="headers"
+                    :label="t('importer.selectColumn')"
+                    variant="outlined"
+                    density="compact"
+                    hide-details
+                    clearable
+                    :placeholder="t('common.ignore')"
+                  />
+                </td>
+                <td
+                  class="text-medium-emphasis text-caption text-truncate"
+                  style="max-width: 150px"
+                >
+                  {{ getSampleValue(field.key) }}
+                </td>
+              </tr>
+            </tbody>
+          </v-table>
+
+          <h3 class="text-h6 mb-2">{{ t('importer.previewData') }}</h3>
+          <v-data-table
+            :headers="previewHeaders"
+            :items="previewData"
+            density="compact"
+            items-per-page="5"
+            class="elevation-1"
           />
-        </v-window-item>
+        </div>
+      </v-window-item>
+    </v-window>
 
-        <!-- Step 2: Configure & Parse -->
-        <v-window-item :value="2">
-          <div v-if="file" class="text-center mb-6">
-            <v-row justify="center" align="center" class="mb-4">
-              <v-col cols="12" sm="6">
-                <v-select
-                  v-model="delimiter"
-                  :items="delimiters"
-                  :label="t('importer.selectDelimiter')"
-                  variant="outlined"
-                  density="comfortable"
-                  hide-details
-                />
-              </v-col>
-            </v-row>
+    <v-alert v-if="error" type="error" variant="tonal" class="mt-4">
+      {{ t(error.key, error.params || {}) }}
+    </v-alert>
 
-            <v-btn
-              color="primary"
-              size="large"
-              :loading="parsing"
-              prepend-icon="mdi-table-search"
-              @click="parseFile"
-            >
-              {{ t('importer.parsePreview') }}
-            </v-btn>
-            <v-btn variant="text" color="error" class="ml-2" @click="reset">
-              {{ t('common.cancel') }}
-            </v-btn>
-          </div>
-        </v-window-item>
-
-        <!-- Step 3: Map Columns -->
-        <v-window-item :value="3">
-          <div class="mb-4">
-            <h3 class="text-h6 mb-4">{{ t('importer.mapColumns') }}</h3>
-
-            <v-alert v-if="!isValid" type="warning" variant="tonal" class="mb-4" density="compact">
-              {{
-                t('importer.status.missing', {
-                  fields: unmappedRequiredFields.map((f) => f.label).join(', '),
-                })
-              }}
-            </v-alert>
-            <v-alert v-else type="success" variant="tonal" class="mb-4" density="compact">
-              {{ t('importer.status.allMapped') }}
-            </v-alert>
-
-            <v-table class="mb-6">
-              <thead>
-                <tr>
-                  <th class="text-left" style="width: 40%">{{ t('common.field') }}</th>
-                  <th class="text-left" style="width: 10%">{{ t('common.required') }}</th>
-                  <th class="text-left" style="width: 30%">{{ t('importer.csvColumn') }}</th>
-                  <th class="text-left" style="width: 20%">{{ t('importer.sampleValue') }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="field in fields" :key="field.key">
-                  <td>{{ field.label }}</td>
-                  <td>
-                    <v-icon v-if="field.required" color="error" size="small">mdi-asterisk</v-icon>
-                  </td>
-                  <td>
-                    <v-select
-                      v-model="mappings[field.key]"
-                      :items="headers"
-                      :label="t('importer.selectColumn')"
-                      variant="outlined"
-                      density="compact"
-                      hide-details
-                      clearable
-                      :placeholder="t('common.ignore')"
-                    />
-                  </td>
-                  <td
-                    class="text-medium-emphasis text-caption text-truncate"
-                    style="max-width: 150px"
-                  >
-                    {{ getSampleValue(field.key) }}
-                  </td>
-                </tr>
-              </tbody>
-            </v-table>
-
-            <h3 class="text-h6 mb-2">{{ t('importer.previewData') }}</h3>
-            <v-data-table
-              :headers="previewHeaders"
-              :items="previewData"
-              density="compact"
-              items-per-page="5"
-              class="elevation-1 mb-4"
-            />
-
-            <div class="d-flex justify-end">
-              <v-btn variant="text" class="mr-2" @click="step = 2">{{ t('common.back') }}</v-btn>
-              <v-btn
-                color="success"
-                prepend-icon="mdi-check"
-                :disabled="!isValid"
-                @click="completeImport"
-              >
-                {{ t('importer.importData') }}
-              </v-btn>
-            </div>
-          </div>
-        </v-window-item>
-      </v-window>
-
-      <v-alert v-if="error" type="error" variant="tonal" class="mt-4">
-        {{ t(error.key, error.params || {}) }}
-      </v-alert>
-    </v-card>
-  </v-container>
+    <!-- Step-specific action buttons -->
+    <template #actions>
+      <template v-if="step === 1">
+        <v-btn variant="text" @click="close">{{ t('common.cancel') }}</v-btn>
+      </template>
+      <template v-else-if="step === 2">
+        <v-btn variant="text" @click="reset">{{ t('common.cancel') }}</v-btn>
+        <v-btn color="primary" :loading="parsing" @click="parseFile">
+          {{ t('importer.parsePreview') }}
+        </v-btn>
+      </template>
+      <template v-else-if="step === 3">
+        <v-btn variant="text" @click="goBack">{{ t('common.back') }}</v-btn>
+        <v-btn color="success" :disabled="!isValid" @click="completeImport">
+          {{ t('importer.importData') }}
+        </v-btn>
+      </template>
+    </template>
+  </AppDialog>
 </template>
