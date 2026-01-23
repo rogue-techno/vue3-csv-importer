@@ -21,8 +21,9 @@ const emit = defineEmits(['import'])
 const { t } = useI18n()
 
 const step = ref(1)
-const files = ref<File[]>([])
-const file = ref<File | null>(null)
+const file = ref<File | undefined>(undefined)
+const fileKey = ref(0)
+
 const pastedCsv = ref('')
 const error = ref<{ key: string; params?: Record<string, string> } | null>(null)
 const parsing = ref(false)
@@ -39,9 +40,20 @@ const parsedData = ref<Record<string, unknown>[]>([])
 const headers = ref<string[]>([])
 const mappings = ref<Record<string, string | null>>({})
 
-// Check if we have data to parse (file or pasted)
-const hasDataToParse = computed(() => {
-  return file.value !== null || pastedCsv.value.trim().length > 0
+const hasDataToParse = computed(() => file.value !== undefined || pastedCsv.value.length > 0)
+
+watch(file, (newFile: File | undefined) => {
+  if (newFile) {
+    pastedCsv.value = ''
+  }
+})
+
+watch(pastedCsv, (newPastedCsv) => {
+  if (newPastedCsv.length > 0) {
+    file.value = undefined
+    // Needed to force the file upload to reset the selected file
+    fileKey.value++
+  }
 })
 
 // Initialize mappings when fields change or headers are populated
@@ -75,54 +87,7 @@ const getSampleValue = (fieldKey: string) => {
   return val !== undefined && val !== null ? String(val) : ''
 }
 
-const previewHeaders = computed(() => {
-  return fields.map((f) => ({
-    title: f.label,
-    key: f.key,
-  }))
-})
-
-const previewData = computed(() => {
-  return parsedData.value.map((row) => {
-    const mappedRow: Record<string, unknown> = {}
-    fields.forEach((f) => {
-      const csvCol = mappings.value[f.key]
-      if (csvCol) {
-        mappedRow[f.key] = row[csvCol]
-      }
-    })
-    return mappedRow
-  })
-})
-
-const onFileSelected = (uploadedFiles: unknown) => {
-  const selected = Array.isArray(uploadedFiles) ? uploadedFiles[0] : uploadedFiles
-  if (selected && selected instanceof File) {
-    validateAndSetFile(selected)
-  }
-}
-
-const validateAndSetFile = (f: File) => {
-  error.value = null
-  if (f.type !== 'text/csv' && !f.name.endsWith('.csv')) {
-    error.value = { key: 'importer.invalidType' }
-    return
-  }
-  file.value = f
-  pastedCsv.value = '' // Clear pasted data when file is selected
-  parsedData.value = []
-  headers.value = []
-}
-
-const onPastedCsvChange = () => {
-  // Clear file when user pastes data
-  if (pastedCsv.value.trim().length > 0) {
-    file.value = null
-    files.value = []
-  }
-}
-
-const parseFile = () => {
+const parseData = () => {
   if (!hasDataToParse.value) return
 
   parsing.value = true
@@ -149,25 +114,39 @@ const parseFile = () => {
 
   if (file.value) {
     Papa.parse(file.value, parseOptions)
-  } else if (pastedCsv.value.trim()) {
+  } else if (pastedCsv.value) {
     Papa.parse(pastedCsv.value, parseOptions)
   }
 }
 
-const goBack = () => {
-  step.value = 1
-}
+const previewHeaders = computed(() => {
+  return fields.map((f) => ({
+    title: f.label,
+    key: f.key,
+  }))
+})
+
+const previewData = computed(() => {
+  return parsedData.value.map((row) => {
+    const mappedRow: Record<string, unknown> = {}
+    fields.forEach((f) => {
+      const csvCol = mappings.value[f.key]
+      if (csvCol) {
+        mappedRow[f.key] = row[csvCol]
+      }
+    })
+    return mappedRow
+  })
+})
 
 const completeImport = () => {
   if (!isValid.value) return
   emit('import', previewData.value)
-  reset()
-  dialogModel.value = false
+  close()
 }
 
 const reset = () => {
-  file.value = null
-  files.value = []
+  file.value = undefined
   pastedCsv.value = ''
   parsedData.value = []
   headers.value = []
@@ -188,11 +167,13 @@ const close = () => {
       <!-- Step 1: Upload & Configure -->
       <v-window-item :value="1">
         <v-file-upload
-          v-model="files"
+          :key="fileKey"
+          v-model="file"
           :title="t('importer.dragDrop')"
           icon="mdi-cloud-upload"
           density="comfortable"
-          @update:model-value="onFileSelected"
+          filter-by-type="text/csv"
+          clearable
         />
 
         <div class="d-flex align-center my-4">
@@ -202,16 +183,15 @@ const close = () => {
         </div>
 
         <v-textarea
-          v-model="pastedCsv"
+          v-model.trim="pastedCsv"
           :label="t('importer.pasteData')"
           :placeholder="t('importer.pasteDataPlaceholder')"
-          variant="outlined"
           rows="6"
           hide-details
-          @update:model-value="onPastedCsvChange"
+          variant="outlined"
         />
 
-        <v-row v-if="hasDataToParse" justify="center" align="center" class="mt-4">
+        <v-row v-if="hasDataToParse" justify="center" class="mt-4">
           <v-col cols="12" sm="6">
             <v-select
               v-model="delimiter"
@@ -261,11 +241,11 @@ const close = () => {
                     v-model="mappings[field.key]"
                     :items="headers"
                     :label="t('importer.selectColumn')"
-                    variant="outlined"
                     density="compact"
                     hide-details
                     clearable
                     :placeholder="t('common.ignore')"
+                    variant="solo-filled"
                   />
                 </td>
                 <td
@@ -298,13 +278,13 @@ const close = () => {
     <template #actions>
       <template v-if="step === 1">
         <v-btn variant="plain" @click="close">{{ t('common.cancel') }}</v-btn>
-        <v-btn :disabled="!hasDataToParse" color="primary" :loading="parsing" @click="parseFile">
+        <v-btn :disabled="!hasDataToParse" color="primary" :loading="parsing" @click="parseData">
           {{ t('common.next') }}
         </v-btn>
       </template>
-      <template v-else-if="step === 2">
+      <template v-else>
         <v-btn variant="plain" @click="close">{{ t('common.cancel') }}</v-btn>
-        <v-btn variant="text" @click="goBack">{{ t('common.back') }}</v-btn>
+        <v-btn variant="text" @click="step = 1">{{ t('common.back') }}</v-btn>
         <v-btn color="success" :disabled="!isValid" @click="completeImport">
           {{ t('importer.importData') }}
         </v-btn>
