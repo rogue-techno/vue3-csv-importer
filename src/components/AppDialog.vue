@@ -43,7 +43,7 @@ const handleSubmit = () => {
 </script>
 
 <template>
-  <v-dialog v-model="dialogModel">
+  <v-dialog v-model="dialogModel" scrollable>
     <v-card>
       <v-card-title class="d-flex align-center justify-space-between pa-4">
         <span class="text-h6">{{ title }}</span>

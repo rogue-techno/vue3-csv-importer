@@ -207,21 +207,21 @@ const close = () => {
 
       <!-- Step 2: Map Columns -->
       <v-window-item :value="2">
-        <div>
-          <h3 class="text-h6 mb-4">{{ t('importer.mapColumns') }}</h3>
+        <div class="d-flex flex-column ga-6">
+          <div class="text-h6">{{ t('importer.mapColumns') }}</div>
 
-          <v-alert v-if="!isValid" type="warning" variant="tonal" class="mb-4" density="compact">
+          <v-alert v-if="!isValid" type="warning" variant="tonal" density="compact">
             {{
               t('importer.status.missing', {
                 fields: unmappedRequiredFields.map((f) => f.label).join(', '),
               })
             }}
           </v-alert>
-          <v-alert v-else type="success" variant="tonal" class="mb-4" density="compact">
+          <v-alert v-else type="success" variant="tonal" density="compact">
             {{ t('importer.status.allMapped') }}
           </v-alert>
 
-          <v-table class="mb-6">
+          <v-table>
             <thead>
               <tr>
                 <th class="text-left" style="width: 40%">{{ t('common.field') }}</th>
@@ -258,14 +258,8 @@ const close = () => {
             </tbody>
           </v-table>
 
-          <h3 class="text-h6 mb-2">{{ t('importer.previewData') }}</h3>
-          <v-data-table
-            :headers="previewHeaders"
-            :items="previewData"
-            density="compact"
-            items-per-page="5"
-            class="elevation-1"
-          />
+          <div class="text-h6">{{ t('importer.previewData') }}</div>
+          <v-data-table :headers="previewHeaders" :items="previewData" density="compact" />
         </div>
       </v-window-item>
     </v-window>
