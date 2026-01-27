@@ -126,20 +126,21 @@ const previewHeaders = computed(() =>
 )
 
 const previewData = computed(() =>
-  parsedData.value.map((row) =>
+  parsedData.value.map((row, index) =>
     fields.reduce(
       (acc, f) => {
         const csvCol = mappings.value[f.key]
         if (csvCol) acc[f.key] = row[csvCol]
         return acc
       },
-      {} as Record<string, unknown>,
+      { _index: index } as Record<string, unknown>,
     ),
   ),
 )
 
 const completeImport = () => {
-  emit('import', selectedData.value)
+  const selectedRows = selectedData.value.map((index) => previewData.value[index])
+  emit('import', selectedRows)
   dialogModel.value = false
 }
 
@@ -273,10 +274,10 @@ watch(dialogModel, (dialogOpened) => {
             v-model="selectedData"
             :headers="previewHeaders"
             :items="previewData"
+            item-value="_index"
             density="compact"
             show-select
             select-strategy="all"
-            return-object
           />
         </div>
       </v-window-item>
