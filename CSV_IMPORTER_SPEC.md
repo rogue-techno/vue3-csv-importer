@@ -11,4 +11,5 @@
   - The user must have a way to select which column to map to which parameter.
   - The component should have a preview of the parsed data.
   - This step should have a cancel, back and next button.
-- The component emits the parsed data to the parent component.
+- The parsed data should be selectable, by default all rows should be selected.
+- The component emits the selected data to the parent component.

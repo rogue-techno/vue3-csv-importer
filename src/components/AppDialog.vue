@@ -46,11 +46,11 @@ const handleSubmit = () => {
   <v-dialog v-model="dialogModel" scrollable>
     <v-card>
       <v-card-title class="d-flex align-center justify-space-between pa-4">
-        <span class="text-h6">{{ title }}</span>
+        <span class="text-h5">{{ title }}</span>
         <v-btn icon="mdi-close" variant="text" density="comfortable" @click="close" />
       </v-card-title>
 
-      <v-card-text class="pa-4">
+      <v-card-text class="px-4">
         <slot />
       </v-card-text>
 

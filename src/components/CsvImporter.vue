@@ -28,17 +28,12 @@ const pastedCsv = ref('')
 const error = ref<{ key: string; params?: Record<string, string> } | null>(null)
 const parsing = ref(false)
 
-const delimiter = ref(';')
-const delimiters = computed(() => [
-  { title: t('importer.delimiters.semicolon'), value: ';' },
-  { title: t('importer.delimiters.comma'), value: ',' },
-  { title: t('importer.delimiters.tab'), value: '\t' },
-  { title: t('importer.delimiters.pipe'), value: '|' },
-])
+const customDelimiter = ref('')
 
 const parsedData = ref<Record<string, unknown>[]>([])
 const headers = ref<string[]>([])
 const mappings = ref<Record<string, string | null>>({})
+const selected = ref<number[]>([])
 
 const hasDataToParse = computed(() => file.value !== undefined || pastedCsv.value.length > 0)
 
@@ -70,19 +65,19 @@ watch(headers, (newHeaders) => {
   mappings.value = newMappings
 })
 
-const unmappedRequiredFields = computed(() => {
-  return fields.filter((f) => f.required && !mappings.value[f.key])
-})
+const unmappedRequiredFields = computed(() =>
+  fields.filter((f) => f.required && !mappings.value[f.key]),
+)
 
-const isValid = computed(() => {
-  return unmappedRequiredFields.value.length === 0
-})
+const isValid = computed(() => unmappedRequiredFields.value.length === 0 || selected.value.length)
 
 const getSampleValue = (fieldKey: string) => {
   const header = mappings.value[fieldKey]
   if (!header || !parsedData.value || parsedData.value.length === 0) return ''
+
   const firstRow = parsedData.value[0]
   if (!firstRow) return ''
+
   const val = firstRow[header]
   return val !== undefined && val !== null ? String(val) : ''
 }
@@ -96,7 +91,8 @@ const parseData = () => {
   const parseOptions = {
     header: true,
     skipEmptyLines: true,
-    delimiter: delimiter.value,
+    delimiter: customDelimiter.value,
+    delimitersToGuess: [';', ',', '\t', '|'],
     complete: (results: Papa.ParseResult<Record<string, unknown>>) => {
       parsing.value = false
       if (results.errors.length > 0) {
@@ -119,15 +115,15 @@ const parseData = () => {
   }
 }
 
-const previewHeaders = computed(() => {
-  return fields.map((f) => ({
+const previewHeaders = computed(() =>
+  fields.map((f) => ({
     title: f.label,
     key: f.key,
-  }))
-})
+  })),
+)
 
-const previewData = computed(() => {
-  return parsedData.value.map((row) => {
+const previewData = computed(() =>
+  parsedData.value.map((row) => {
     const mappedRow: Record<string, unknown> = {}
     fields.forEach((f) => {
       const csvCol = mappings.value[f.key]
@@ -136,17 +132,17 @@ const previewData = computed(() => {
       }
     })
     return mappedRow
-  })
-})
+  }),
+)
 
 const completeImport = () => {
-  if (!isValid.value) return
   emit('import', previewData.value)
-  close()
+  dialogModel.value = false
 }
 
 const reset = () => {
   file.value = undefined
+  customDelimiter.value = ''
   pastedCsv.value = ''
   parsedData.value = []
   headers.value = []
@@ -155,10 +151,11 @@ const reset = () => {
   mappings.value = {}
 }
 
-const close = () => {
-  reset()
-  dialogModel.value = false
-}
+watch(dialogModel, (dialogOpened) => {
+  if (!dialogOpened) {
+    reset()
+  }
+})
 </script>
 
 <template>
@@ -166,43 +163,44 @@ const close = () => {
     <v-window v-model="step">
       <!-- Step 1: Upload & Configure -->
       <v-window-item :value="1">
-        <v-file-upload
-          :key="fileKey"
-          v-model="file"
-          :title="t('importer.dragDrop')"
-          icon="mdi-cloud-upload"
-          density="comfortable"
-          filter-by-type="text/csv"
-          clearable
-        />
+        <div class="d-flex flex-column ga-2">
+          <v-file-upload
+            :key="fileKey"
+            v-model="file"
+            :title="t('importer.dragDrop')"
+            icon="mdi-cloud-upload"
+            density="comfortable"
+            filter-by-type="text/csv"
+            clearable
+          />
 
-        <div class="d-flex align-center my-4">
-          <v-divider />
-          <span class="mx-4 text-medium-emphasis">{{ t('importer.or') }}</span>
-          <v-divider />
-        </div>
+          <div class="d-flex align-center mb-2">
+            <v-divider />
+            <span class="mx-4 text-medium-emphasis">{{ t('importer.or') }}</span>
+            <v-divider />
+          </div>
 
-        <v-textarea
-          v-model.trim="pastedCsv"
-          :label="t('importer.pasteData')"
-          :placeholder="t('importer.pasteDataPlaceholder')"
-          rows="6"
-          hide-details
-          variant="outlined"
-        />
+          <v-textarea
+            v-model.trim="pastedCsv"
+            :label="t('importer.pasteData')"
+            :placeholder="t('importer.pasteDataPlaceholder')"
+            rows="6"
+            hide-details
+            variant="outlined"
+          />
 
-        <v-row v-if="hasDataToParse" justify="center" class="mt-4">
-          <v-col cols="12" sm="6">
-            <v-select
-              v-model="delimiter"
-              :items="delimiters"
-              :label="t('importer.selectDelimiter')"
+          <div v-if="hasDataToParse" class="d-flex align-center ga-4 mt-4">
+            <v-text-field
+              v-model="customDelimiter"
+              :label="t('importer.configureDelimiter')"
               variant="outlined"
               density="comfortable"
               hide-details
             />
-          </v-col>
-        </v-row>
+            <div>{{ t('importer.configureDelimiterLabel') }}</div>
+            <v-spacer />
+          </div>
+        </div>
       </v-window-item>
 
       <!-- Step 2: Map Columns -->
@@ -259,7 +257,16 @@ const close = () => {
           </v-table>
 
           <div class="text-h6">{{ t('importer.previewData') }}</div>
-          <v-data-table :headers="previewHeaders" :items="previewData" density="compact" />
+
+          <v-data-table
+            v-model="selected"
+            :headers="previewHeaders"
+            :items="previewData"
+            density="compact"
+            show-select
+            select-strategy="all"
+            return-object
+          />
         </div>
       </v-window-item>
     </v-window>
@@ -271,15 +278,15 @@ const close = () => {
     <!-- Step-specific action buttons -->
     <template #actions>
       <template v-if="step === 1">
-        <v-btn variant="plain" @click="close">{{ t('common.cancel') }}</v-btn>
+        <v-btn variant="plain" @click="dialogModel = false">{{ t('common.cancel') }}</v-btn>
         <v-btn :disabled="!hasDataToParse" color="primary" :loading="parsing" @click="parseData">
           {{ t('common.next') }}
         </v-btn>
       </template>
       <template v-else>
-        <v-btn variant="plain" @click="close">{{ t('common.cancel') }}</v-btn>
+        <v-btn variant="plain" @click="dialogModel = false">{{ t('common.cancel') }}</v-btn>
         <v-btn variant="text" @click="step = 1">{{ t('common.back') }}</v-btn>
-        <v-btn color="success" :disabled="!isValid" @click="completeImport">
+        <v-btn color="primary" :disabled="!isValid" @click="completeImport">
           {{ t('importer.importData') }}
         </v-btn>
       </template>
