@@ -24,6 +24,8 @@ export default {
     selectField: 'Select Field',
     previewData: 'Preview Data',
     importData: 'Import Selected Data',
+    appendData: 'Append',
+    replaceData: 'Replace',
     sampleValue: 'Sample Value',
     targetField: 'Target Field',
     status: {

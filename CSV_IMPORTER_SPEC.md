@@ -13,4 +13,7 @@
   - The component should have a preview of the parsed data.
   - This step should have a cancel, back and next button.
 - The parsed data should be selectable, by default all rows should be selected.
-- The component emits the selected data to the parent component.
+- The component emits the selected data to the parent component
+  - The emit should give two choices to the parent component.
+    - Append the selected data to the existing data.
+    - Replace the existing data with the selected data.

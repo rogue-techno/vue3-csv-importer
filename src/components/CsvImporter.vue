@@ -16,7 +16,9 @@ const { fields } = defineProps<{
 
 const dialogModel = defineModel<boolean>({ required: true })
 
-const emit = defineEmits(['import'])
+const emit = defineEmits<{
+  (e: 'import', data: Record<string, unknown>[], mode: 'append' | 'replace'): void
+}>()
 
 const { t } = useI18n()
 
@@ -107,6 +109,7 @@ const parseData = () => {
 
       parsedData.value = results.data
       headers.value = results.meta.fields || []
+      selectedData.value = results.data.map((_, i) => i)
       step.value = 2
     },
   }
@@ -138,9 +141,9 @@ const previewData = computed(() =>
   ),
 )
 
-const completeImport = () => {
-  const selectedRows = selectedData.value.map((index) => previewData.value[index])
-  emit('import', selectedRows)
+const completeImport = (mode: 'append' | 'replace') => {
+  const selectedRows = selectedData.value.map((index) => previewData.value[index] ?? {})
+  emit('import', selectedRows, mode)
   dialogModel.value = false
 }
 
@@ -291,15 +294,36 @@ watch(dialogModel, (dialogOpened) => {
     <template #actions>
       <template v-if="step === 1">
         <v-btn variant="plain" @click="dialogModel = false">{{ t('common.cancel') }}</v-btn>
-        <v-btn :disabled="!hasDataToParse" color="primary" :loading="parsing" @click="parseData">
+        <v-btn
+          :disabled="!hasDataToParse"
+          variant="elevated"
+          color="primary"
+          :loading="parsing"
+          @click="parseData"
+        >
           {{ t('common.next') }}
         </v-btn>
       </template>
       <template v-else>
         <v-btn variant="plain" @click="dialogModel = false">{{ t('common.cancel') }}</v-btn>
         <v-btn variant="text" @click="goBack">{{ t('common.back') }}</v-btn>
-        <v-btn color="primary" :disabled="!isValid" @click="completeImport">
+        <v-btn
+          variant="elevated"
+          color="primary"
+          :disabled="!isValid"
+          append-icon="mdi-chevron-down"
+        >
           {{ t('importer.importData') }}
+          <v-menu activator="parent">
+            <v-list density="compact">
+              <v-list-item @click="completeImport('append')">
+                <v-list-item-title>{{ t('importer.appendData') }}</v-list-item-title>
+              </v-list-item>
+              <v-list-item @click="completeImport('replace')">
+                <v-list-item-title>{{ t('importer.replaceData') }}</v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
         </v-btn>
       </template>
     </template>

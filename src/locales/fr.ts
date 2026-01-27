@@ -25,6 +25,8 @@ export default {
     selectField: 'Sélectionner un champ',
     previewData: 'Prévisualisation des données',
     importData: 'Importer les données sélectionnées',
+    appendData: 'Ajouter',
+    replaceData: 'Remplacer',
     sampleValue: 'Valeur exemple',
     targetField: 'Champ cible',
     status: {

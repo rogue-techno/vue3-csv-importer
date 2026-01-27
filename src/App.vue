@@ -18,8 +18,9 @@ const importFields = computed(() => [
   { key: 'country', label: t('fields.country'), required: false },
 ])
 
-const onImport = (data: unknown[]) => {
+const onImport = (data: unknown[], mode: 'append' | 'replace') => {
   console.log('Imported Data:', data)
+  console.log('Import Mode:', mode)
   alert(`Imported ${data.length} rows! Check console.`)
   importDialog.value = false
 }
