@@ -29,6 +29,7 @@ export default {
     status: {
       allMapped: 'All required fields mapped',
       missing: 'Missing required fields: {fields}',
+      noSelection: 'No data selected',
     },
   },
   fields: {

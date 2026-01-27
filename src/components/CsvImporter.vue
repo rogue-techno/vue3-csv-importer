@@ -30,20 +30,22 @@ const parsing = ref(false)
 
 const customDelimiter = ref('')
 
-const parsedData = ref<Record<string, unknown>[]>([])
 const headers = ref<string[]>([])
 const mappings = ref<Record<string, string | null>>({})
-const selected = ref<number[]>([])
+const parsedData = ref<Record<string, string>[]>([])
+const selectedData = ref<number[]>([])
 
 const hasDataToParse = computed(() => file.value !== undefined || pastedCsv.value.length > 0)
 
 watch(file, (newFile: File | undefined) => {
+  customDelimiter.value = ''
   if (newFile) {
     pastedCsv.value = ''
   }
 })
 
 watch(pastedCsv, (newPastedCsv) => {
+  customDelimiter.value = ''
   if (newPastedCsv.length > 0) {
     file.value = undefined
     // Needed to force the file upload to reset the selected file
@@ -69,7 +71,9 @@ const unmappedRequiredFields = computed(() =>
   fields.filter((f) => f.required && !mappings.value[f.key]),
 )
 
-const isValid = computed(() => unmappedRequiredFields.value.length === 0 || selected.value.length)
+const isValid = computed(
+  () => unmappedRequiredFields.value.length === 0 && selectedData.value.length,
+)
 
 const getSampleValue = (fieldKey: string) => {
   const header = mappings.value[fieldKey]
@@ -78,13 +82,10 @@ const getSampleValue = (fieldKey: string) => {
   const firstRow = parsedData.value[0]
   if (!firstRow) return ''
 
-  const val = firstRow[header]
-  return val !== undefined && val !== null ? String(val) : ''
+  return firstRow[header] ?? ''
 }
 
 const parseData = () => {
-  if (!hasDataToParse.value) return
-
   parsing.value = true
   error.value = null
 
@@ -93,18 +94,20 @@ const parseData = () => {
     skipEmptyLines: true,
     delimiter: customDelimiter.value,
     delimitersToGuess: [';', ',', '\t', '|'],
-    complete: (results: Papa.ParseResult<Record<string, unknown>>) => {
+    complete: (results: Papa.ParseResult<Record<string, string>>) => {
       parsing.value = false
+
       if (results.errors.length > 0) {
-        console.warn('Parse errors:', results.errors)
+        error.value = {
+          key: 'importer.errorParsing',
+          params: { error: results.errors.map((e) => e.message).join(', ') },
+        }
+        return
       }
+
       parsedData.value = results.data
       headers.value = results.meta.fields || []
       step.value = 2
-    },
-    error: (err: Error) => {
-      parsing.value = false
-      error.value = { key: 'importer.errorParsing', params: { error: err.message } }
     },
   }
 
@@ -123,32 +126,38 @@ const previewHeaders = computed(() =>
 )
 
 const previewData = computed(() =>
-  parsedData.value.map((row) => {
-    const mappedRow: Record<string, unknown> = {}
-    fields.forEach((f) => {
-      const csvCol = mappings.value[f.key]
-      if (csvCol) {
-        mappedRow[f.key] = row[csvCol]
-      }
-    })
-    return mappedRow
-  }),
+  parsedData.value.map((row) =>
+    fields.reduce(
+      (acc, f) => {
+        const csvCol = mappings.value[f.key]
+        if (csvCol) acc[f.key] = row[csvCol]
+        return acc
+      },
+      {} as Record<string, unknown>,
+    ),
+  ),
 )
 
 const completeImport = () => {
-  emit('import', previewData.value)
+  emit('import', selectedData.value)
   dialogModel.value = false
 }
 
 const reset = () => {
   file.value = undefined
-  customDelimiter.value = ''
   pastedCsv.value = ''
+  customDelimiter.value = ''
   parsedData.value = []
   headers.value = []
-  step.value = 1
-  error.value = null
   mappings.value = {}
+  step.value = 1
+  selectedData.value = []
+  error.value = null
+}
+
+const goBack = () => {
+  step.value = 1
+  selectedData.value = []
 }
 
 watch(dialogModel, (dialogOpened) => {
@@ -210,9 +219,11 @@ watch(dialogModel, (dialogOpened) => {
 
           <v-alert v-if="!isValid" type="warning" variant="tonal" density="compact">
             {{
-              t('importer.status.missing', {
-                fields: unmappedRequiredFields.map((f) => f.label).join(', '),
-              })
+              unmappedRequiredFields.length
+                ? t('importer.status.missing', {
+                    fields: unmappedRequiredFields.map((f) => f.label).join(', '),
+                  })
+                : t('importer.status.noSelection')
             }}
           </v-alert>
           <v-alert v-else type="success" variant="tonal" density="compact">
@@ -259,7 +270,7 @@ watch(dialogModel, (dialogOpened) => {
           <div class="text-h6">{{ t('importer.previewData') }}</div>
 
           <v-data-table
-            v-model="selected"
+            v-model="selectedData"
             :headers="previewHeaders"
             :items="previewData"
             density="compact"
@@ -285,7 +296,7 @@ watch(dialogModel, (dialogOpened) => {
       </template>
       <template v-else>
         <v-btn variant="plain" @click="dialogModel = false">{{ t('common.cancel') }}</v-btn>
-        <v-btn variant="text" @click="step = 1">{{ t('common.back') }}</v-btn>
+        <v-btn variant="text" @click="goBack">{{ t('common.back') }}</v-btn>
         <v-btn color="primary" :disabled="!isValid" @click="completeImport">
           {{ t('importer.importData') }}
         </v-btn>

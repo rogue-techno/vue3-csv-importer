@@ -5,7 +5,8 @@
 - It should also accept pasting the csv data in the component to parse it.
 - There should have 2 steps to import the CSV data.
 - Step1: Use Vuetify's v-file-upload component is used to select the file, or paste the csv data.
-  - The user can select the delimiter.
+  - The user can manually configure a delimiter, but it should take the most common delimiters as default. (, ; | \t)
+  - If there is an error parsing the file, it should display an error message and not proceed to the next step.
   - This step should have a cancel and next button.
 - Step2: The must take a varying list of parameters to match the CSV columns to.
   - The user must have a way to select which column to map to which parameter.
